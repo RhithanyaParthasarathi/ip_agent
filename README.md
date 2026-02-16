@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Company RAG Agent
 
 A production-ready RAG (Retrieval-Augmented Generation) agent built with Claude (Anthropic), Qdrant vector database, FastAPI backend, and React frontend. The agent can answer questions using company documents (RAG mode) or general knowledge.
@@ -350,6 +349,3 @@ For issues or questions, check:
 ## 📄 License
 
 MIT License - Feel free to modify and use for your company.
-=======
-Readme file
->>>>>>> 62de203be6011d9130471f7f4720fdc6986f2ead

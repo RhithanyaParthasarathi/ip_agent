@@ -5,8 +5,8 @@ from typing import List, Optional
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from rag_agent import RAGAgent
-from config import settings
+from .rag_agent import RAGAgent
+from .config import settings
 
 
 # Initialize FastAPI app
@@ -19,7 +19,7 @@ app = FastAPI(
 # Add CORS middleware for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # React dev servers
+    allow_origins=["http://localhost:3000", "http://localhost:5173","http://localhost:5174" ],  # React dev servers
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

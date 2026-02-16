@@ -9,7 +9,7 @@ from langchain_community.document_loaders import (
     TextLoader,
     UnstructuredHTMLLoader
 )
-from config import settings
+from .config import settings
 
 
 class DocumentProcessor:
