@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     
     # Model Settings
     embedding_model: str = "all-MiniLM-L6-v2"
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-2.5-flash"
     
     # RAG Settings
     chunk_size: int = 1000
