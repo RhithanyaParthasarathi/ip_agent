@@ -17,13 +17,13 @@ function Sidebar({ isOpen, onToggle, collectionInfo, onUploadSuccess }) {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:8000/upload/document', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/upload/document`, {
         method: 'POST',
         body: formData,
       });
 
       const data = await response.json();
-      
+
       if (response.ok) {
         setUploadStatus(`Success: ${data.filename} processed (${data.chunks} chunks)`);
         onUploadSuccess();
@@ -85,8 +85,8 @@ function Sidebar({ isOpen, onToggle, collectionInfo, onUploadSuccess }) {
                   <span>Choose File</span>
                 </>
               )}
-              <input 
-                type="file" 
+              <input
+                type="file"
                 onChange={handleFileUpload}
                 accept=".pdf,.docx,.txt,.html"
                 disabled={uploading}

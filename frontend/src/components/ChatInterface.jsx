@@ -32,7 +32,7 @@ function ChatInterface({ sidebarOpen }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/ask', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/ask`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ function ChatInterface({ sidebarOpen }) {
   const clearChat = async () => {
     setMessages([]);
     try {
-      await fetch('http://localhost:8000/clear-memory', {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/clear-memory`, {
         method: 'POST',
       });
     } catch (error) {
@@ -127,8 +127,8 @@ function ChatInterface({ sidebarOpen }) {
           rows={1}
           disabled={loading}
         />
-        <button 
-          onClick={handleSend} 
+        <button
+          onClick={handleSend}
           disabled={!input.trim() || loading}
           className="send-btn"
         >

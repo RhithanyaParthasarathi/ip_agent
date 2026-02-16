@@ -18,7 +18,7 @@ class VectorStoreManager:
             port=settings.qdrant_port
         )
         self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/embedding-001",
+            model="models/gemini-embedding-001",
             google_api_key=settings.google_api_key
         )
         self.collection_name = settings.vector_collection

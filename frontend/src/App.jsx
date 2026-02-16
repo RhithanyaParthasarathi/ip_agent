@@ -10,7 +10,7 @@ function App() {
 
   const fetchCollectionInfo = async () => {
     try {
-      const response = await fetch('http://localhost:8000/collection/info');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/collection/info`);
       const data = await response.json();
       setCollectionInfo(data);
     } catch (error) {
@@ -26,8 +26,8 @@ function App() {
     <div className="app">
       <Header />
       <div className="app-container">
-        <Sidebar 
-          isOpen={sidebarOpen} 
+        <Sidebar
+          isOpen={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
           collectionInfo={collectionInfo}
           onUploadSuccess={fetchCollectionInfo}
