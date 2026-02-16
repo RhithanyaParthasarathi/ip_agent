@@ -21,14 +21,14 @@
   justify-content: center;
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #06b6d4 0%, #10b981 100%);
   border-radius: 50%;
   color: white;
-  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 8px 32px rgba(6, 182, 212, 0.4);
   transition: all 0.3s ease;
 }
 
 .bot-icon:hover {
   transform: scale(1.05);
-  box-shadow: 0 12px 40px rgba(236, 72, 153, 0.6);
+  box-shadow: 0 12px 40px rgba(6, 182, 212, 0.6);
 }

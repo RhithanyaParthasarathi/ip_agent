@@ -1,12 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, Trash2 } from 'lucide-react';
+import { Send, Loader2, Trash2, Pencil, Check } from 'lucide-react';
 import Message from './Message';
 import './ChatInterface.css';
 
-function ChatInterface({ sidebarOpen }) {
-  const [messages, setMessages] = useState([]);
+const API_URL = import.meta.env.VITE_API_URL;
+
+function ChatInterface({
+  sidebarOpen, messages, onMessagesChange,
+  conversationTitle, onRenameConversation,
+  conversationId, activeSources
+}) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -27,17 +34,19 @@ function ChatInterface({ sidebarOpen }) {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    onMessagesChange([...messages, userMessage]);
     setInput('');
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/ask', {
+      const body = { question: input };
+      if (conversationId) body.conversation_id = String(conversationId);
+      if (activeSources && activeSources.length > 0) body.selected_sources = activeSources;
+
+      const response = await fetch(`${API_URL}/ask`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ question: input }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -45,13 +54,13 @@ function ChatInterface({ sidebarOpen }) {
       const botMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        content: data.answer,
-        sources: data.sources,
-        mode: data.mode,
+        content: data.answer || data.detail || 'No response received.',
+        sources: data.sources || [],
+        mode: data.mode || 'general',
         timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      onMessagesChange([...messages, userMessage, botMessage]);
     } catch (error) {
       const errorMessage = {
         id: Date.now() + 1,
@@ -60,7 +69,7 @@ function ChatInterface({ sidebarOpen }) {
         error: true,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      onMessagesChange([...messages, userMessage, errorMessage]);
     } finally {
       setLoading(false);
     }
@@ -74,20 +83,50 @@ function ChatInterface({ sidebarOpen }) {
   };
 
   const clearChat = async () => {
-    setMessages([]);
+    onMessagesChange([]);
     try {
-      await fetch('http://localhost:8000/clear-memory', {
-        method: 'POST',
-      });
+      await fetch(`${API_URL}/clear-memory`, { method: 'POST' });
     } catch (error) {
       console.error('Error clearing memory:', error);
     }
   };
 
+  const startEditTitle = () => {
+    setTitleDraft(conversationTitle);
+    setEditingTitle(true);
+  };
+
+  const confirmTitle = () => {
+    if (titleDraft.trim()) {
+      onRenameConversation(titleDraft.trim());
+    }
+    setEditingTitle(false);
+  };
+
   return (
     <div className={`chat-interface ${sidebarOpen ? '' : 'full-width'}`}>
       <div className="chat-header">
-        <h2>Chat</h2>
+        <div className="chat-title-area">
+          {editingTitle ? (
+            <div className="title-edit-row">
+              <input
+                className="title-edit-input"
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') confirmTitle(); if (e.key === 'Escape') setEditingTitle(false); }}
+                autoFocus
+              />
+              <button className="title-edit-btn" onClick={confirmTitle}><Check size={16} /></button>
+            </div>
+          ) : (
+            <div className="title-display-row">
+              <h2>{conversationTitle}</h2>
+              <button className="title-edit-trigger" onClick={startEditTitle}>
+                <Pencil size={14} />
+              </button>
+            </div>
+          )}
+        </div>
         {messages.length > 0 && (
           <button className="clear-btn" onClick={clearChat}>
             <Trash2 size={18} />

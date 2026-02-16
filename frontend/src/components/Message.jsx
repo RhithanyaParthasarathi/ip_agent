@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Bot, User, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import './Message.css';
 
 function Message({ message }) {
@@ -17,13 +18,17 @@ function Message({ message }) {
       
       <div className="message-body">
         <div className="message-content">
-          {message.content}
+          {message.type === 'bot' ? (
+            <ReactMarkdown>{message.content}</ReactMarkdown>
+          ) : (
+            message.content
+          )}
         </div>
         
         {message.mode && (
           <div className="message-mode">
             <span className={`mode-badge ${message.mode}`}>
-              {message.mode === 'rag' ? '📚 From Documents' : '🌐 General Knowledge'}
+              {message.mode === 'rag' ? 'From Documents' : 'General Knowledge'}
             </span>
           </div>
         )}

@@ -1,39 +1,20 @@
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
+*.pyc
+*.pyo
 venv/
-ENV/
-build/
-dist/
-*.egg-info/
-
-# Environment
 .env
 
-# Data
-data/
-uploads/
-*.db
+# Backend
+backend/__pycache__/
+backend/.env
+backend/data/uploads/
 
-# Qdrant
-qdrant_storage/
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Node (for React frontend)
-node_modules/
-.next/
-out/
-build/
-*.log
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
 
 # OS
 .DS_Store

@@ -32,11 +32,14 @@ agent = RAGAgent()
 # Pydantic models
 class QuestionRequest(BaseModel):
     question: str
+    conversation_id: Optional[str] = None
+    selected_sources: Optional[List[str]] = None
 
 
 class TextUploadRequest(BaseModel):
     text: str
     source: Optional[str] = "manual_input"
+    conversation_id: Optional[str] = None
 
 
 class QuestionResponse(BaseModel):
@@ -68,31 +71,32 @@ async def health_check():
 
 @app.post("/ask", response_model=QuestionResponse)
 async def ask_question(request: QuestionRequest):
-    """
-    Ask a question to the RAG agent.
-    """
+    """Ask a question with optional conversation filtering."""
     try:
-        result = agent.ask(request.question)
+        result = agent.ask(
+            request.question,
+            conversation_id=request.conversation_id,
+            selected_sources=request.selected_sources
+        )
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/upload/document")
-async def upload_document(file: UploadFile = File(...)):
-    """
-    Upload a document (PDF, DOCX, TXT, HTML) to the knowledge base.
-    """
+async def upload_document(
+    file: UploadFile = File(...),
+    conversation_id: str = Form(None)
+):
+    """Upload a document to a conversation's knowledge base."""
     try:
-        # Save uploaded file
         file_path = settings.upload_dir / file.filename
         
         with open(file_path, "wb") as f:
             content = await file.read()
             f.write(content)
         
-        # Process and add to vector store
-        result = agent.add_documents(str(file_path))
+        result = agent.add_documents(str(file_path), conversation_id=conversation_id)
         
         if result["success"]:
             return {
@@ -112,11 +116,9 @@ async def upload_document(file: UploadFile = File(...)):
 
 @app.post("/upload/text")
 async def upload_text(request: TextUploadRequest):
-    """
-    Upload raw text to the knowledge base.
-    """
+    """Upload raw text to the knowledge base."""
     try:
-        result = agent.add_text(request.text, request.source)
+        result = agent.add_text(request.text, request.source, conversation_id=request.conversation_id)
         
         if result["success"]:
             return {
@@ -143,10 +145,31 @@ async def clear_memory():
 
 @app.get("/collection/info")
 async def get_collection_info():
-    """
-    Get information about the vector store collection.
-    """
+    """Get information about the vector store collection."""
     return agent.get_collection_info()
+
+
+@app.get("/sources/{conversation_id}")
+async def get_sources(conversation_id: str):
+    """Get all uploaded sources for a conversation."""
+    try:
+        sources = agent.vector_store_manager.get_sources_for_conversation(conversation_id)
+        return {"sources": sources}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/sources/{conversation_id}/{source_name:path}")
+async def delete_source(conversation_id: str, source_name: str):
+    """Delete a specific source from a conversation."""
+    try:
+        deleted_count = agent.vector_store_manager.delete_source(conversation_id, source_name)
+        return {
+            "message": f"Deleted {deleted_count} chunks for '{source_name}'",
+            "deleted_chunks": deleted_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
