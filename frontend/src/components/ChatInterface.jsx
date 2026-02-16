@@ -99,17 +99,8 @@ function ChatInterface({ sidebarOpen }) {
       <div className="messages-container">
         {messages.length === 0 ? (
           <div className="empty-state">
-            <h3>👋 Welcome to the Company RAG Agent!</h3>
-            <p>Ask me anything about your company documents or general questions.</p>
-            <div className="example-questions">
-              <span className="example-label">Try asking:</span>
-              <button onClick={() => setInput("What can you help me with?")}>
-                What can you help me with?
-              </button>
-              <button onClick={() => setInput("Explain how the RAG system works")}>
-                Explain how the RAG system works
-              </button>
-            </div>
+            <h3>Hi!</h3>
+            <p>Ask me anything</p>
           </div>
         ) : (
           messages.map(message => (

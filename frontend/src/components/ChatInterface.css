@@ -66,13 +66,15 @@
 
 .empty-state h3 {
   color: #ffffff;
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: 0.5px;
 }
 
 .empty-state p {
   color: #9ca3af;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  font-weight: 300;
 }
 
 .example-questions {

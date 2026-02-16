@@ -25,14 +25,14 @@ function Sidebar({ isOpen, onToggle, collectionInfo, onUploadSuccess }) {
       const data = await response.json();
       
       if (response.ok) {
-        setUploadStatus(`✓ ${data.filename} processed (${data.chunks} chunks)`);
+        setUploadStatus(`Success: ${data.filename} processed (${data.chunks} chunks)`);
         onUploadSuccess();
         setTimeout(() => setUploadStatus(''), 3000);
       } else {
-        setUploadStatus(`✗ Error: ${data.detail}`);
+        setUploadStatus(`Error: ${data.detail}`);
       }
     } catch (error) {
-      setUploadStatus(`✗ Error: ${error.message}`);
+      setUploadStatus(`Error: ${error.message}`);
     } finally {
       setUploading(false);
       event.target.value = '';
@@ -97,7 +97,7 @@ function Sidebar({ isOpen, onToggle, collectionInfo, onUploadSuccess }) {
               Supported: PDF, DOCX, TXT, HTML
             </p>
             {uploadStatus && (
-              <div className={`upload-status ${uploadStatus.startsWith('✓') ? 'success' : 'error'}`}>
+              <div className={`upload-status ${uploadStatus.startsWith('Success') ? 'success' : 'error'}`}>
                 {uploadStatus}
               </div>
             )}
