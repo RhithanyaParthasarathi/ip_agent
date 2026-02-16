@@ -1,0 +1,34 @@
+.header {
+  background: #000000;
+  padding: 1.5rem 2rem;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80px;
+  border-bottom: 1px solid #1f1f1f;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bot-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  border-radius: 50%;
+  color: white;
+  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.4);
+  transition: all 0.3s ease;
+}
+
+.bot-icon:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 40px rgba(236, 72, 153, 0.6);
+}
