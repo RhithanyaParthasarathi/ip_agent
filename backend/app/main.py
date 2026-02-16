@@ -5,8 +5,8 @@ from typing import List, Optional
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from rag_agent import RAGAgent
-from config import settings
+from .rag_agent import RAGAgent
+from .config import settings
 
 
 # Initialize FastAPI app
