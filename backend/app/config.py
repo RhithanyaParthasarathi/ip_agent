@@ -28,6 +28,20 @@ class Settings(BaseSettings):
     chunk_overlap: int = 200
     top_k_results: int = 5
     
+    # Azure Communication Services
+    acs_connection_string: str = ""
+    
+    # Azure AD / Bot
+    azure_app_id: str = ""
+    azure_app_secret: str = ""
+    azure_tenant_id: str = ""
+    
+    # Bot callback URL (ngrok URL in dev)
+    bot_callback_url: str = "http://localhost:8000"
+    
+    # Google Cloud Speech (optional - for STT/TTS)
+    google_cloud_project_id: str = ""
+    
     class Config:
         env_file = ".env"
         case_sensitive = False
@@ -38,3 +52,4 @@ settings = Settings()
 
 # Create upload directory if it doesn't exist
 settings.upload_dir.mkdir(parents=True, exist_ok=True)
+

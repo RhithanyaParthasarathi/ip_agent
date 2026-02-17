@@ -25,5 +25,15 @@ python-magic-bin>=0.4.14; sys_platform == "win32"
 python-magic>=0.4.27; sys_platform != "win32"
 docx2txt>=0.8
 
+# Azure Communication Services (Teams integration)
+azure-communication-callautomation>=1.3.0
+azure-communication-identity>=1.5.0
+
+# Speech Services (free, no API keys needed)
+vosk>=0.3.44
+gTTS>=2.5.0
+
 # Utilities
 python-dotenv>=1.0.1
+websockets>=12.0
+

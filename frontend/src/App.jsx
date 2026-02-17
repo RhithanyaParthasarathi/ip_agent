@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
+import TeamsPanel from './components/TeamsPanel';
 import './App.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -9,6 +10,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [collectionInfo, setCollectionInfo] = useState(null);
+  const [activeTab, setActiveTab] = useState('chat');
 
   // Multi-conversation state
   const [conversations, setConversations] = useState([
@@ -49,7 +51,7 @@ function App() {
         }));
         return { ...c, sources: updatedSources };
       }));
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   useEffect(() => {
@@ -89,7 +91,7 @@ function App() {
     setActiveConversationId(newConv.id);
     try {
       await fetch(`${API_URL}/clear-memory`, { method: 'POST' });
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const deleteConversation = (id) => {
@@ -111,7 +113,7 @@ function App() {
     setActiveConversationId(id);
     try {
       await fetch(`${API_URL}/clear-memory`, { method: 'POST' });
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const renameConversation = (id, newTitle) => {
@@ -145,7 +147,7 @@ function App() {
       });
       fetchSources(activeConversationId);
       fetchCollectionInfo();
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleUploadSuccess = () => {
@@ -163,32 +165,52 @@ function App() {
   return (
     <div className="app">
       <Header />
+      <div className="tab-nav">
+        <button
+          className={`tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
+          onClick={() => setActiveTab('chat')}
+        >
+          💬 Chat
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'teams' ? 'active' : ''}`}
+          onClick={() => setActiveTab('teams')}
+        >
+          📞 Teams Meeting
+        </button>
+      </div>
       <div className="main-content">
-        <Sidebar
-          isOpen={sidebarOpen}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-          collectionInfo={collectionInfo}
-          onUploadSuccess={handleUploadSuccess}
-          conversations={sortedConversations}
-          activeConversationId={activeConversationId}
-          onNewChat={createNewConversation}
-          onSelectConversation={switchConversation}
-          onDeleteConversation={deleteConversation}
-          onRenameConversation={renameConversation}
-          onTogglePinConversation={togglePinConversation}
-          sources={activeConversation?.sources || []}
-          onToggleSource={toggleSourceActive}
-          onDeleteSource={deleteSource}
-        />
-        <ChatInterface
-          sidebarOpen={sidebarOpen}
-          messages={activeConversation?.messages || []}
-          onMessagesChange={(msgs) => updateConversationMessages(activeConversationId, msgs)}
-          conversationTitle={activeConversation?.title || 'New Chat'}
-          onRenameConversation={(title) => renameConversation(activeConversationId, title)}
-          conversationId={activeConversationId}
-          activeSources={(activeConversation?.sources || []).filter(s => s.active).map(s => s.name)}
-        />
+        {activeTab === 'chat' ? (
+          <>
+            <Sidebar
+              isOpen={sidebarOpen}
+              onToggle={() => setSidebarOpen(!sidebarOpen)}
+              collectionInfo={collectionInfo}
+              onUploadSuccess={handleUploadSuccess}
+              conversations={sortedConversations}
+              activeConversationId={activeConversationId}
+              onNewChat={createNewConversation}
+              onSelectConversation={switchConversation}
+              onDeleteConversation={deleteConversation}
+              onRenameConversation={renameConversation}
+              onTogglePinConversation={togglePinConversation}
+              sources={activeConversation?.sources || []}
+              onToggleSource={toggleSourceActive}
+              onDeleteSource={deleteSource}
+            />
+            <ChatInterface
+              sidebarOpen={sidebarOpen}
+              messages={activeConversation?.messages || []}
+              onMessagesChange={(msgs) => updateConversationMessages(activeConversationId, msgs)}
+              conversationTitle={activeConversation?.title || 'New Chat'}
+              onRenameConversation={(title) => renameConversation(activeConversationId, title)}
+              conversationId={activeConversationId}
+              activeSources={(activeConversation?.sources || []).filter(s => s.active).map(s => s.name)}
+            />
+          </>
+        ) : (
+          <TeamsPanel />
+        )}
       </div>
     </div>
   );
