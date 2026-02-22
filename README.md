@@ -1,6 +1,6 @@
 # Company RAG Agent
 
-A production-ready RAG (Retrieval-Augmented Generation) agent built with Claude (Anthropic), Qdrant vector database, FastAPI backend, and React frontend. The agent can answer questions using company documents (RAG mode) or general knowledge.
+An AI-powered Retrieval-Augmented Generation (RAG) agent for Microsoft Teams meetings and company Q&A. Built with Google Gemini 2.5 Flash, Qdrant vector database (Docker), FastAPI backend, and React frontend. Supports document-grounded answers, real-time speech processing, and Teams integration.
 
 ## 🎯 Features
 
