@@ -1,0 +1,229 @@
+====================================================
+       NEXORA TECHNOLOGIES — EMPLOYEE ONBOARDING HANDBOOK
+====================================================
+
+Last Updated: January 2026
+Version: 3.2
+Department: Human Resources
+
+----------------------------------------------------
+1. WELCOME TO NEXORA
+----------------------------------------------------
+
+Welcome to Nexora Technologies! We're glad to have you on board. This handbook covers everything you need to know during your first 90 days. If you have questions that aren't answered here, reach out to your reporting manager or the HR team at hr@nexora.com.
+
+Our mission: To build intelligent software solutions that simplify enterprise workflows.
+
+Office Locations:
+  - Headquarters: Bengaluru, Karnataka (Tower B, Floor 12, Prestige Tech Park)
+  - Branch Office: Hyderabad, Telangana (Hitech City, WeWork)
+  - Branch Office: Chennai, Tamil Nadu (Tidel Park, Block 4)
+
+Working Hours: 9:30 AM to 6:30 PM IST (Monday to Friday)
+Dress Code: Business casual. No formal dress code on Fridays ("Casual Fridays").
+
+----------------------------------------------------
+2. YOUR FIRST WEEK
+----------------------------------------------------
+
+Day 1:
+  - Report to the front desk at 9:30 AM with your offer letter and government ID
+  - Collect your employee ID card, laptop, and welcome kit from the IT desk
+  - Your reporting manager will introduce you to the team
+  - Complete mandatory compliance training on the LMS portal (takes ~2 hours)
+
+Day 2-3:
+  - Set up your development environment (see Section 8 for IT setup guide)
+  - Complete the "Company Culture & Values" module on the LMS
+  - Shadow a senior team member for your first project overview
+
+Day 4-5:
+  - Attend the weekly team standup (every Thursday at 10:00 AM on Teams)
+  - Submit your bank details to payroll@nexora.com for salary processing
+  - Set up your VPN (instructions in Section 8)
+
+----------------------------------------------------
+3. LEAVE POLICY
+----------------------------------------------------
+
+Annual Leave Entitlement:
+  - Paid Leaves (PL): 18 days per year (1.5 per month, accrued)
+  - Sick Leaves (SL): 12 days per year (no carryover)
+  - Casual Leaves (CL): 6 days per year (no carryover)
+  - Public Holidays: As per the annual holiday calendar (published in January each year)
+
+Carryover:
+  - Up to 10 unused Paid Leaves can be carried over to the next year
+  - Sick and Casual Leaves expire on December 31 and cannot be carried over
+  - Maximum leave balance cap: 30 Paid Leaves
+
+How to Apply:
+  1. Log in to the HRMS portal at https://hrms.nexora.com
+  2. Navigate to "Leave Management" → "Apply Leave"
+  3. Select leave type, dates, and provide a reason
+  4. Submit — your manager will approve/reject within 48 hours
+  5. For emergency leaves, inform your manager via Teams/call and apply retroactively within 2 days
+
+Special Leaves:
+  - Maternity Leave: 26 weeks (as per Maternity Benefit Act)
+  - Paternity Leave: 10 working days
+  - Bereavement Leave: 5 working days (immediate family)
+  - Marriage Leave: 3 working days (once during employment)
+
+----------------------------------------------------
+4. COMPENSATION & BENEFITS
+----------------------------------------------------
+
+Salary Cycle:
+  - Salary is credited on the last working day of each month
+  - Payslips are available on the HRMS portal by the 2nd of the following month
+
+Benefits:
+  - Health Insurance: Covered from Day 1 for employee + spouse + 2 children (Sum insured: ₹5,00,000)
+  - Life Insurance: 2x annual CTC (provided by the company)
+  - Meal Allowance: ₹3,000/month (included in salary)
+  - Internet Reimbursement: ₹1,500/month (submit bills on HRMS)
+  - Learning Budget: ₹25,000/year for courses, certifications, and conferences
+  - Gym Membership: Corporate tie-up with Cult.fit (50% subsidized)
+
+Performance Reviews:
+  - Annual appraisal cycle: April each year
+  - Mid-year check-in: October (informal, no rating)
+  - Ratings: Exceeds Expectations / Meets Expectations / Below Expectations / Needs Improvement
+  - Increments and promotions are based on April review ratings
+
+----------------------------------------------------
+5. CODE OF CONDUCT
+----------------------------------------------------
+
+Expected Behavior:
+  - Be respectful and professional with all colleagues
+  - Maintain confidentiality of client data and proprietary information
+  - Follow the company's information security policy at all times
+  - Report any unethical behavior to ethics@nexora.com (anonymous reporting available)
+
+Prohibited:
+  - Sharing client data or source code outside the organization
+  - Using company resources for personal projects without approval
+  - Harassment, discrimination, or bullying in any form
+  - Working for a competitor or freelancing without written HR approval
+
+Violation Consequences:
+  - First offense: Written warning
+  - Second offense: Suspension without pay (up to 2 weeks)
+  - Third offense: Termination
+
+----------------------------------------------------
+6. TOOLS & SOFTWARE
+----------------------------------------------------
+
+Communication:
+  - Microsoft Teams: Primary communication tool for chats, calls, and meetings
+  - Outlook: For all official email communication
+  - Slack: Used by some project teams (optional)
+
+Project Management:
+  - Jira: Task tracking and sprint management
+  - Confluence: Internal documentation and knowledge base
+
+Development:
+  - GitHub Enterprise: Source code repository (request access from your tech lead)
+  - VS Code: Recommended IDE (license provided)
+  - Docker Desktop: For containerized development (license provided)
+  - Postman: API testing
+
+Access Management:
+  - All tool access requests go through the IT Service Desk at ithelp@nexora.com
+  - Standard SLA: 24 hours for tool access, 48 hours for hardware requests
+  - For urgent requests, raise a P1 ticket on the ITSM portal
+
+----------------------------------------------------
+7. REMOTE WORK POLICY
+----------------------------------------------------
+
+Hybrid Model:
+  - Employees are required to work from the office a minimum of 3 days per week
+  - Work-from-home days are Tuesday and Friday by default (can be adjusted with manager approval)
+  - Fully remote arrangements require VP-level approval and are reviewed quarterly
+
+Remote Work Guidelines:
+  - Must be available on Teams during working hours (9:30 AM - 6:30 PM)
+  - Camera on during all team meetings
+  - Ensure a stable internet connection (minimum 50 Mbps recommended)
+  - VPN must be connected when accessing internal systems from outside the office
+
+----------------------------------------------------
+8. IT SETUP GUIDE
+----------------------------------------------------
+
+Laptop Setup (Day 1):
+  1. Power on and sign in with your Nexora email credentials (provided by IT)
+  2. Connect to "Nexora-Corp" WiFi (password provided at the IT desk)
+  3. Install all pending Windows/macOS updates
+  4. Open the Company Portal app — it will auto-install required software
+
+VPN Setup:
+  1. Download GlobalProtect from the Company Portal
+  2. Open GlobalProtect and enter the portal address: vpn.nexora.com
+  3. Sign in with your Nexora email and password
+  4. Click Connect — you should see "Connected" status within 30 seconds
+  5. If it fails, check that your MFA (Microsoft Authenticator) is set up correctly
+
+Email & Calendar:
+  1. Open Outlook (pre-installed)
+  2. Sign in with your Nexora email
+  3. Your team calendar and meeting invites will sync automatically
+  4. Set your working hours in Outlook: Settings → Calendar → Working Hours
+
+GitHub Access:
+  1. Email your GitHub username to your tech lead
+  2. You'll receive an invite to the Nexora Enterprise organization within 24 hours
+  3. Clone repositories using: git clone https://github.com/nexora-tech/{repo-name}
+  4. Always create feature branches — never push directly to main
+
+----------------------------------------------------
+9. FREQUENTLY ASKED QUESTIONS
+----------------------------------------------------
+
+Q: How do I reset my password?
+A: Go to https://passwordreset.nexora.com or contact IT at ithelp@nexora.com.
+
+Q: Who do I contact for payroll issues?
+A: Email payroll@nexora.com or raise a ticket on the HRMS portal.
+
+Q: Can I use my personal laptop for work?
+A: No. All work must be done on company-issued devices for security compliance.
+
+Q: How do I book a meeting room?
+A: Use Outlook Calendar → New Event → Add Room → select from available rooms.
+
+Q: What's the notice period?
+A: 60 days for all employees. Can be negotiated with HR in special circumstances.
+
+Q: How do I claim reimbursements?
+A: Upload receipts on HRMS portal → "Claims" → select category → submit. Approved claims are processed in the next salary cycle.
+
+Q: Is there a referral bonus?
+A: Yes. ₹25,000 for junior roles, ₹50,000 for senior roles, ₹75,000 for leadership roles. Paid after the referred employee completes 90 days.
+
+Q: Where do I find the holiday calendar?
+A: HRMS portal → "Company Policies" → "Holiday Calendar 2026"
+
+----------------------------------------------------
+10. IMPORTANT CONTACTS
+----------------------------------------------------
+
+HR Team: hr@nexora.com
+Payroll: payroll@nexora.com
+IT Help Desk: ithelp@nexora.com
+Ethics Helpline: ethics@nexora.com (anonymous)
+Facilities: facilities@nexora.com
+Emergency (Bengaluru office): +91-80-4567-8900
+
+Manager Escalation Path:
+  Your Manager → Department Head → HR Business Partner → VP
+
+====================================================
+     Thank you for joining Nexora Technologies!
+    We're excited to have you as part of the team.
+====================================================

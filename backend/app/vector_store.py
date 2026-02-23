@@ -14,6 +14,7 @@ class VectorStoreManager:
     
     def __init__(self):
         """Initialize the vector store manager."""
+        # Connect to Qdrant running in Docker
         self.client = QdrantClient(
             host=settings.qdrant_host,
             port=settings.qdrant_port
