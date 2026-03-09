@@ -7,8 +7,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application settings."""
     
-    # API Keys
-    google_api_key: str
+    # API Keys (optional - only needed if using cloud models)
+    google_api_key: str = ""
     
     # Qdrant Settings
     qdrant_host: str = "localhost"
@@ -19,9 +19,12 @@ class Settings(BaseSettings):
     app_name: str = "Company RAG Agent"
     upload_dir: Path = Path("./data/uploads")
     
-    # Model Settings
+    # Ollama Settings (local LLM)
+    ollama_host: str = "http://localhost:11434"
+    ollama_model: str = "llama3.2:1b"  # Llama 3.2 1B - small but newer architecture
+    
+    # Embedding Model (local, runs via sentence-transformers)
     embedding_model: str = "all-MiniLM-L6-v2"
-    gemini_model: str = "gemini-2.5-flash"
     
     # RAG Settings
     chunk_size: int = 1000

@@ -2,7 +2,7 @@
 import time
 from typing import List, Optional
 from langchain_qdrant import QdrantVectorStore
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, Filter, FieldCondition, MatchValue, MatchAny, FilterSelector
@@ -19,9 +19,9 @@ class VectorStoreManager:
             host=settings.qdrant_host,
             port=settings.qdrant_port
         )
-        self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/gemini-embedding-001",
-            google_api_key=settings.google_api_key
+        # Local embeddings - no API key needed
+        self.embeddings = HuggingFaceEmbeddings(
+            model_name=settings.embedding_model
         )
         self.collection_name = settings.vector_collection
         self._ensure_collection_exists()

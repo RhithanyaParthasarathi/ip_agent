@@ -1,7 +1,7 @@
 """RAG Agent orchestrating the retrieval and generation."""
 import time
 from typing import List, Dict, Optional
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage, AIMessage
@@ -17,11 +17,10 @@ class RAGAgent:
     
     def __init__(self):
         """Initialize the RAG agent."""
-        self.llm = ChatGoogleGenerativeAI(
-            model=settings.gemini_model,
-            google_api_key=settings.google_api_key,
-            temperature=0.7,
-            max_output_tokens=2048
+        self.llm = ChatOllama(
+            model=settings.ollama_model,
+            base_url=settings.ollama_host,
+            temperature=0.7
         )
         
         self.vector_store_manager = VectorStoreManager()
@@ -59,20 +58,31 @@ class RAGAgent:
                 selected_sources=selected_sources
             )
             
-            context = "\n\n".join(doc.page_content for doc in docs) if docs else "No relevant documents found."
+            context = "\n\n".join(doc.page_content for doc in docs) if docs else ""
             
-            prompt = ChatPromptTemplate.from_messages([
-                ("system", f"""You are a helpful AI assistant for the company. You can answer questions using the provided context from company documents, or use your general knowledge for other questions.
+            # Prompt with few-shot examples to help smaller models
+            if context:
+                system_msg = f"""You are a company assistant. Answer questions using ONLY the context provided.
 
-Context from company documents:
+CONTEXT:
 {context}
 
-Instructions:
-- If the context contains relevant information, use it to answer the question accurately.
-- If the context doesn't contain relevant information, use your general knowledge to provide a helpful answer.
-- Be clear about whether you're answering from company documents or general knowledge.
-- If you're unsure, say so honestly."""),
-            ] + [(msg.type, msg.content) for msg in self.chat_history] + [
+EXAMPLES:
+Q: What are the working hours?
+A: Working hours are 9:30 AM to 6:30 PM.
+
+Q: How many sick leaves do I get?
+A: You get 12 sick leaves per year.
+
+Q: What is the capital of France?
+A: I don't have information about that in the company documents.
+
+NOW ANSWER THE QUESTION BELOW. If the answer is not in the context, say "I don't have information about that in the company documents.\""""
+            else:
+                system_msg = "You are a helpful assistant. Give short, direct answers."
+            
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", system_msg),
                 ("human", "{question}")
             ])
             
