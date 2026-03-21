@@ -1,7 +1,8 @@
 """RAG Agent orchestrating the retrieval and generation."""
 import time
 from typing import List, Dict, Optional
-from langchain_ollama import ChatOllama
+from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_ollama import ChatOllama  # For local/offline LLM via Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage, AIMessage
@@ -17,11 +18,19 @@ class RAGAgent:
     
     def __init__(self):
         """Initialize the RAG agent."""
-        self.llm = ChatOllama(
-            model=settings.ollama_model,
-            base_url=settings.ollama_host,
+        # --- Gemini API (active) ---
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash-lite",
+            google_api_key=settings.google_api_key,
             temperature=0.7
         )
+        
+        # --- Ollama / Local LLM (commented out) ---
+        # self.llm = ChatOllama(
+        #     model=settings.ollama_model,
+        #     base_url=settings.ollama_host,
+        #     temperature=0.7
+        # )
         
         self.vector_store_manager = VectorStoreManager()
         self.document_processor = DocumentProcessor()

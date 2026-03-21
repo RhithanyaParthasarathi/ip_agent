@@ -7,8 +7,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application settings."""
     
-    # API Keys (optional - only needed if using cloud models)
-    google_api_key: str = ""
+    # API Keys
+    google_api_key: str
     
     # Qdrant Settings
     qdrant_host: str = "localhost"
@@ -27,9 +27,9 @@ class Settings(BaseSettings):
     embedding_model: str = "all-MiniLM-L6-v2"
     
     # RAG Settings
-    chunk_size: int = 1000
-    chunk_overlap: int = 200
-    top_k_results: int = 5
+    chunk_size: int = 500
+    chunk_overlap: int = 100
+    top_k_results: int = 8
     
     # Azure Communication Services
     acs_connection_string: str = ""

@@ -25,6 +25,7 @@ An AI-powered Retrieval-Augmented Generation (RAG) agent for Microsoft Teams mee
 ### 1. Backend Setup
 
 Install Python dependencies:
+
 ```powershell
 pip install -r requirements.txt
 ```
@@ -32,6 +33,7 @@ pip install -r requirements.txt
 ### 2. Setup Qdrant Vector Database
 
 **Run Qdrant using Docker (Recommended)**:
+
 ```powershell
 docker run -p 6333:6333 qdrant/qdrant
 ```
@@ -39,11 +41,13 @@ docker run -p 6333:6333 qdrant/qdrant
 ### 3. Configure Environment
 
 Copy `.env.example` to `.env`:
+
 ```powershell
 copy .env.example .env
 ```
 
 Edit `.env` and add your Anthropic API key:
+
 ```
 ANTHROPIC_API_KEY=your_actual_api_key_here
 ```
@@ -53,6 +57,7 @@ Get your API key from: https://console.anthropic.com/
 ### 4. Frontend Setup
 
 Navigate to frontend directory and install dependencies:
+
 ```powershell
 cd frontend
 npm install
@@ -64,16 +69,19 @@ cd ..
 You need 3 terminals:
 
 **Terminal 1 - Qdrant:**
+
 ```powershell
 docker run -p 6333:6333 qdrant/qdrant
 ```
 
 **Terminal 2 - Backend:**
+
 ```powershell
 python main.py
 ```
 
 **Terminal 3 - Frontend:**
+
 ```powershell
 cd frontend
 npm run dev
@@ -97,6 +105,7 @@ npm run dev
 5. **Clear Chat**: Use the "Clear" button to start a new conversation
 
 The interface shows:
+
 - 📚 **From Documents** badge: Answer comes from your uploaded documents (RAG mode)
 - 🌐 **General Knowledge** badge: Answer from Claude's general knowledge
 
@@ -122,6 +131,7 @@ print(response['answer'])
 ### Option 3: REST API
 
 Start the FastAPI server:
+
 ```bash
 python main.py
 ```
@@ -131,6 +141,7 @@ The server runs at `http://localhost:8000`
 **API Documentation**: http://localhost:8000/docs
 
 **Key Endpoints:**
+
 - `POST /ask` - Ask a question
 - `POST /upload/document` - Upload a document (PDF, DOCX, TXT)
 - `POST /upload/text` - Upload raw text
@@ -138,6 +149,7 @@ The server runs at `http://localhost:8000`
 - `POST /clear-memory` - Clear conversation history
 
 **Example API Usage:**
+
 ```bash
 # Ask a question
 curl -X POST "http://localhost:8000/ask" \
@@ -190,6 +202,7 @@ Edit `config.py` or `.env` to customize:
 ## 📝 Adding Your Documents
 
 ### Method 1: Python Script
+
 ```python
 agent = RAGAgent()
 agent.add_documents("data/uploads/company_handbook.pdf")
@@ -197,13 +210,16 @@ agent.add_documents("data/uploads/policies.docx")
 ```
 
 ### Method 2: API Endpoint
+
 ```bash
 curl -X POST "http://localhost:8000/upload/document" \
   -F "file=@company_handbook.pdf"
 ```
 
 ### Method 3: Bulk Upload
+
 Place files in `data/uploads/` and run:
+
 ```python
 from pathlib import Path
 from rag_agent import RAGAgent
@@ -229,28 +245,37 @@ The agent automatically determines which mode to use based on the question and a
 ## 🔍 Troubleshooting
 
 ### Qdrant Connection Error
+
 ```
 Error: Could not connect to Qdrant
 ```
+
 **Solution**: Make sure Qdrant is running:
+
 ```bash
 docker run -p 6333:6333 qdrant/qdrant
 ```
 
 ### Anthropic API Error
+
 ```
 Error: Invalid API key
 ```
+
 **Solution**: Check your `.env` file has the correct API key:
+
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 ### Import Errors
+
 ```
 ModuleNotFoundError: No module named 'langchain'
 ```
+
 **Solution**: Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -258,11 +283,13 @@ pip install -r requirements.txt
 ## 💰 Cost Estimation
 
 **Free Components:**
+
 - Qdrant (local): $0
 - Embeddings model: $0
 - Python/FastAPI: $0
 
 **Paid Components:**
+
 - Claude API: ~$0.003-0.03 per 1K tokens
 - Typical query: ~$0.01-0.05
 
@@ -271,12 +298,15 @@ pip install -r requirements.txt
 ## 🚢 Deployment
 
 ### Local Development
+
 ```bash
 python main.py
 ```
 
 ### Production (Docker)
+
 Create `Dockerfile`:
+
 ```dockerfile
 FROM python:3.11-slim
 WORKDIR /app
@@ -287,6 +317,7 @@ CMD ["python", "main.py"]
 ```
 
 Build and run:
+
 ```bash
 docker build -t rag-agent .
 docker run -p 8000:8000 --env-file .env rag-agent
@@ -342,6 +373,7 @@ To showcase the RAG agent system:
 ## 🤝 Support
 
 For issues or questions, check:
+
 - Qdrant docs: https://qdrant.tech/documentation/
 - LangChain docs: https://python.langchain.com/
 - Anthropic docs: https://docs.anthropic.com/
