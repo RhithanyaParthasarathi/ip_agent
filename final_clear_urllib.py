@@ -1,10 +1,10 @@
-import urllib.request
-import json
-
+import urllib.request as r
 try:
-    url = 'http://localhost:8000/collection/clear'
-    req = urllib.request.Request(url, method='POST')
-    with urllib.request.urlopen(req) as response:
-        print(response.read().decode())
+    req = r.Request('http://localhost:8000/collection/clear', method='POST')
+    print(r.urlopen(req).read().decode())
 except Exception as e:
-    print(f"Error: {e}")
+    import urllib.error
+    if isinstance(e, urllib.error.HTTPError):
+        print("HTTP Error:", e.code, e.read().decode())
+    else:
+        print("Error:", e)

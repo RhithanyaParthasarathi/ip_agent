@@ -92,7 +92,7 @@ async def health_check():
 
 
 @app.post("/ask", response_model=QuestionResponse)
-async def ask_question(request: QuestionRequest):
+def ask_question(request: QuestionRequest):
     """Ask a question with optional conversation filtering."""
     try:
         result = agent.ask(
@@ -106,7 +106,7 @@ async def ask_question(request: QuestionRequest):
 
 
 @app.post("/upload/document")
-async def upload_document(
+def upload_document(
     file: UploadFile = File(...),
     conversation_id: str = Form(None)
 ):
@@ -115,7 +115,7 @@ async def upload_document(
         file_path = settings.upload_dir / file.filename
         
         with open(file_path, "wb") as f:
-            content = await file.read()
+            content = file.file.read()
             f.write(content)
         
         result = agent.add_documents(str(file_path), conversation_id=conversation_id)
@@ -137,7 +137,7 @@ async def upload_document(
 
 
 @app.post("/upload/text")
-async def upload_text(request: TextUploadRequest):
+def upload_text(request: TextUploadRequest):
     """Upload raw text to the knowledge base."""
     try:
         result = agent.add_text(request.text, request.source, conversation_id=request.conversation_id)
@@ -157,7 +157,7 @@ async def upload_text(request: TextUploadRequest):
 
 
 @app.post("/ask-voice")
-async def ask_voice(file: UploadFile = File(...), conversation_id: str = Form(None)):
+def ask_voice(file: UploadFile = File(...), conversation_id: str = Form(None)):
     """
     Test endpoint for voice models. Takes audio, transcribes it, 
     asks the RAG agent, and synthesizes the answer back to audio.
@@ -165,7 +165,7 @@ async def ask_voice(file: UploadFile = File(...), conversation_id: str = Form(No
     import base64
     try:
         # 1. Read Audio
-        audio_bytes = await file.read()
+        audio_bytes = file.file.read()
         
         # 2. Transcribe (STT)
         transcription = speech_service.transcribe_audio(audio_bytes)
@@ -198,14 +198,14 @@ async def ask_voice(file: UploadFile = File(...), conversation_id: str = Form(No
 
 
 @app.post("/clear-memory")
-async def clear_memory():
+def clear_memory():
     """Clear the conversation memory."""
     agent.clear_memory()
     return {"message": "Conversation memory cleared"}
 
 
 @app.post("/collection/clear")
-async def clear_collection():
+def clear_collection():
     """Clear all documents from the vector store."""
     try:
         agent.vector_store_manager.delete_collection()
@@ -216,13 +216,13 @@ async def clear_collection():
 
 
 @app.get("/collection/info")
-async def get_collection_info():
+def get_collection_info():
     """Get information about the vector store collection."""
     return agent.get_collection_info()
 
 
 @app.get("/sources/{conversation_id}")
-async def get_sources(conversation_id: str):
+def get_sources(conversation_id: str):
     """Get all uploaded sources for a conversation."""
     try:
         sources = agent.vector_store_manager.get_sources_for_conversation(conversation_id)
@@ -232,7 +232,7 @@ async def get_sources(conversation_id: str):
 
 
 @app.delete("/sources/{conversation_id}/{source_name:path}")
-async def delete_source(conversation_id: str, source_name: str):
+def delete_source(conversation_id: str, source_name: str):
     """Delete a specific source from a conversation."""
     try:
         deleted_count = agent.vector_store_manager.delete_source(conversation_id, source_name)
