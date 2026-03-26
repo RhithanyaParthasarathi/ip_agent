@@ -1,5 +1,6 @@
 .sidebar {
   width: 280px;
+  flex-shrink: 0;
   height: 100%;
   background: rgba(18, 18, 18, 0.4);
   backdrop-filter: blur(30px);
