@@ -65,6 +65,7 @@ function ChatInterface({
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const messagesEndRef = useRef(null);
   const speechRecognitionRef = useRef(null);
+  const recordingRef = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -140,8 +141,9 @@ function ChatInterface({
       recorder.stream = stream;
       setMediaRecorder(recorder);
       setIsRecording(true);
+      recordingRef.current = true;
       setShowVoiceOverlay(true);
-      setInterimText('');
+      setInterimText('Listening...');
 
       // Start Web Speech API for live interim transcript
       if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -149,17 +151,38 @@ function ChatInterface({
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'en-IN'; // Better for Indian English accent
+        recognition.lang = 'en-IN';
         recognition.onresult = (event) => {
-          let interim = '';
+          let transcript = '';
           for (let i = event.resultIndex; i < event.results.length; i++) {
-            interim += event.results[i][0].transcript;
+            transcript += event.results[i][0].transcript;
           }
-          setInterimText(interim);
+          if (transcript.trim()) {
+            setInterimText(transcript.trim());
+          }
         };
-        recognition.onerror = () => {}; // Silently fail - Whisper is the real STT
-        recognition.start();
+        recognition.onerror = () => {
+          setInterimText('Live transcription unavailable. Recording still in progress...');
+        };
+        recognition.onend = () => {
+          if (recordingRef.current) {
+            try {
+              recognition.start();
+            } catch {
+              setInterimText('Live transcription unavailable. Recording still in progress...');
+            }
+          }
+        };
+
+        try {
+          recognition.start();
+        } catch {
+          setInterimText('Live transcription unavailable. Recording still in progress...');
+        }
+
         speechRecognitionRef.current = recognition;
+      } else {
+        setInterimText('Live transcription not supported in this browser.');
       }
     } catch (err) {
       console.error('Error accessing microphone:', err);
@@ -168,6 +191,7 @@ function ChatInterface({
   };
 
   const stopRecording = () => {
+    recordingRef.current = false;
     // Stop Web Speech API interim transcript
     if (speechRecognitionRef.current) {
       speechRecognitionRef.current.stop();

@@ -1,7 +1,7 @@
 """
 Speech Service module - STT using Whisper, TTS using Edge TTS (Microsoft Neural Voices).
 
-STT: openai/whisper-base.en (local GPU inference)
+STT: configurable Whisper model (default openai/whisper-base.en)
 TTS: edge-tts with en-IN-NeerjaNeural (cloud neural voice, free)
 """
 import os
@@ -13,6 +13,7 @@ import tempfile
 import numpy as np
 from pathlib import Path
 from typing import Optional, Dict, Any
+from .config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,10 @@ class SpeechService:
         self._stt_ready = False
         self._tts_ready = False   # Edge-TTS doesn't need local init
         self._init_error: Optional[str] = None
+        self._stt_model_name: Optional[str] = None
         self.device = "cuda"
+        self._stt_device_label = "cuda"
+        self._pipeline_device = 0
         self._try_initialize()
     
     def _try_initialize(self):
@@ -35,23 +39,41 @@ class SpeechService:
         
         if not torch.cuda.is_available():
             self.device = "cpu"
+            self._stt_device_label = "cpu"
+            self._pipeline_device = -1
             logger.warning("CUDA not available, running on CPU. STT will be slow.")
         else:
+            self._stt_device_label = "cuda"
+            self._pipeline_device = 0
             logger.info(f"Using GPU: {torch.cuda.get_device_name(0)}")
 
         # ── Initialize STT (Whisper Base) ──
         try:
             from transformers import pipeline
             
-            stt_model_name = "openai/whisper-base.en"
-            logger.info(f"Loading STT model: {stt_model_name}...")
-            self.stt_pipeline = pipeline(
-                "automatic-speech-recognition",
-                model=stt_model_name,
-                device=self.device
-            )
-            self._stt_ready = True
-            logger.info("SpeechService: STT (Whisper Base) ready")
+            requested_model_name = settings.stt_model_name or "openai/whisper-base.en"
+            fallback_model_name = "openai/whisper-base.en"
+            model_candidates = [requested_model_name]
+            if requested_model_name != fallback_model_name:
+                model_candidates.append(fallback_model_name)
+
+            for model_name in model_candidates:
+                try:
+                    logger.info(f"Loading STT model: {model_name}...")
+                    self.stt_pipeline = pipeline(
+                        "automatic-speech-recognition",
+                        model=model_name,
+                        device=self._pipeline_device
+                    )
+                    self._stt_ready = True
+                    self._stt_model_name = model_name
+                    logger.info("SpeechService: STT ready with model %s", model_name)
+                    break
+                except Exception as model_error:
+                    logger.warning("SpeechService: Failed to load STT model %s: %s", model_name, str(model_error))
+
+            if not self._stt_ready:
+                raise RuntimeError("Could not load any STT model")
         except Exception as e:
             err = f"STT init error: {str(e)}"
             logger.error("SpeechService: %s", err)
@@ -71,7 +93,8 @@ class SpeechService:
         return {
             "stt_ready": self._stt_ready,
             "tts_ready": self._tts_ready,
-            "stt_engine": "whisper-base" if self._stt_ready else "not loaded",
+            "stt_engine": self._stt_model_name if self._stt_ready else "not loaded",
+            "stt_device": self._stt_device_label,
             "tts_engine": "edge-tts (NeerjaNeural)" if self._tts_ready else "not loaded",
             "mode": "active" if (self._stt_ready and self._tts_ready) else "partial",
             "error": self._init_error,

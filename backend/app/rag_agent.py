@@ -80,24 +80,10 @@ class RAGAgent:
             )
 
             if is_greeting:
-                system_msg = """You are Red AI, a friendly onboarding assistant for new company employees.
-Your job is to help employees understand company policies, benefits, and procedures.
-When someone greets you, respond warmly and briefly (1-2 sentences max).
-For 'who are you' or similar, explain you are Red AI: an agent who can help you understand company policies while you onboard.
-Keep responses short, warm, and professional."""
-                prompt = ChatPromptTemplate.from_messages([
-                    ("system", system_msg),
-                    ("human", "{question}")
-                ])
-                chain = prompt | self.llm | StrOutputParser()
-                answer = self._invoke_with_retry(chain, {"question": question})
-                
-                # Fallback to prevent "I don't have information" for greetings
-                if not answer or not answer.strip() or "information about" in answer.lower():
-                    if is_identity_request:
-                        answer = "I'm Red AI, your onboarding assistant. I can help you understand company policies while you onboard."
-                    else:
-                        answer = "Hi! I'm Red AI, your onboarding companion. How can I help you today?"
+                if is_identity_request:
+                    answer = "I'm Red AI, your onboarding assistant. I can help you understand company policies while you onboard."
+                else:
+                    answer = "Hi! I'm Red AI, your onboarding companion. How can I help you today?"
                 
                 self.chat_history.append(HumanMessage(content=question))
                 self.chat_history.append(AIMessage(content=answer))
@@ -171,7 +157,7 @@ ANSWER THE QUESTION BELOW. If the answer is not in the context, say "I don't hav
             return {
                 "answer": "I'm having trouble connecting to the AI service. Please try again in a moment.",
                 "sources": [],
-                "mode": "rag"
+                "mode": "general"
             }
     
     def add_documents(self, file_path: str, conversation_id: str = None) -> Dict[str, any]:

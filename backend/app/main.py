@@ -88,6 +88,7 @@ async def health_check():
         "status": "healthy",
         "vector_store": collection_info,
         "teams_bot": teams_bot.get_status(),
+        "speech_service": speech_service.get_status(),
     }
 
 
@@ -176,22 +177,29 @@ def ask_voice(file: UploadFile = File(...), conversation_id: str = Form(None)):
         result = agent.ask(transcription, conversation_id=conversation_id)
         answer = result.get("answer", "I could not find an answer.")
         
-        # 4. Synthesize Speech (TTS)
+        # 4. Synthesize Speech (TTS) - graceful fallback if TTS is unavailable
+        audio_b64 = None
+        tts_warning = None
         tts_audio_bytes = speech_service.synthesize_speech(answer)
-        if not tts_audio_bytes:
-            raise HTTPException(status_code=500, detail="Failed to synthesize speech audio.")
-            
-        # Encode as base64 so frontend can play it easily in JSON
-        audio_b64 = base64.b64encode(tts_audio_bytes).decode("utf-8")
+        if tts_audio_bytes:
+            audio_b64 = base64.b64encode(tts_audio_bytes).decode("utf-8")
+        else:
+            tts_warning = "TTS unavailable; returning text-only response."
+            logger.warning("Voice ask: TTS synthesis failed, returning text-only response")
         
-        return {
+        response = {
             "transcription": transcription,
             "answer": answer,
             "audio_base64": audio_b64,
             "sources": result.get("sources", []),
             "mode": result.get("mode", "general")
         }
-        
+        if tts_warning:
+            response["tts_warning"] = tts_warning
+
+        return response
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Voice ask error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

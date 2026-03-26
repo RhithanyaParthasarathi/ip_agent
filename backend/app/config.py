@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     
     # Embedding Model (local, runs via sentence-transformers)
     embedding_model: str = "all-MiniLM-L6-v2"
+
+    # Speech-to-Text model (Whisper via transformers)
+    stt_model_name: str = "openai/whisper-base.en"
     
     # RAG Settings
     chunk_size: int = 500

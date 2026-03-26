@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Upload, FileText, ChevronLeft, Database, Loader2, Plus, MessageSquare, Trash2, Pin, PinOff, Pencil, Check, X, FileX2, Search, Radio, Phone, Library, Bot } from 'lucide-react';
 import './Sidebar.css';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 function Sidebar({ 
   isOpen, onToggle, collectionInfo, onUploadSuccess,
@@ -231,14 +231,33 @@ function Sidebar({
                 className="clear-vstore-btn"
                 onClick={async () => {
                   if (window.confirm('Wipe the knowledge base? This clears ALL uploaded documents.')) {
+                    const baseCandidates = [
+                      API_URL,
+                      '/api',
+                      'http://localhost:8000'
+                    ].filter((value, index, array) => Boolean(value) && array.indexOf(value) === index);
+
+                    const requests = [];
+                    for (const base of baseCandidates) {
+                      requests.push({ url: `${base}/collection/clear`, method: 'POST' });
+                      requests.push({ url: `${base}/collection`, method: 'DELETE' });
+                    }
+
+                    let lastResponseText = '';
+                    let lastStatus = 0;
+
                     try {
-                      const res = await fetch(`${API_URL}/collection/clear`, { method: 'POST' });
-                      if (res.ok) {
-                        window.location.reload();
-                      } else {
-                        const text = await res.text();
-                        alert(`Backend Error (${res.status}): ${text}`);
+                      for (const request of requests) {
+                        const res = await fetch(request.url, { method: request.method });
+                        if (res.ok) {
+                          window.location.reload();
+                          return;
+                        }
+                        lastStatus = res.status;
+                        lastResponseText = await res.text();
                       }
+
+                      alert(`Backend Error (${lastStatus}): ${lastResponseText || 'Not Found'}`);
                     } catch (e) { 
                       console.error('Failed to clear store', e);
                       alert(`Network Error: ${e.message}`);
