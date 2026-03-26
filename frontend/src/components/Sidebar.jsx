@@ -233,8 +233,16 @@ function Sidebar({
                   if (window.confirm('Wipe the knowledge base? This clears ALL uploaded documents.')) {
                     try {
                       const res = await fetch(`${API_URL}/collection/clear`, { method: 'POST' });
-                      if (res.ok) window.location.reload();
-                    } catch (e) { console.error('Failed to clear store', e); }
+                      if (res.ok) {
+                        window.location.reload();
+                      } else {
+                        const text = await res.text();
+                        alert(`Backend Error (${res.status}): ${text}`);
+                      }
+                    } catch (e) { 
+                      console.error('Failed to clear store', e);
+                      alert(`Network Error: ${e.message}`);
+                    }
                   }
                 }}
               >
