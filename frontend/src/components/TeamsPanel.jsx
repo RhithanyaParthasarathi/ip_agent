@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Phone, PhoneOff, Loader, Wifi, WifiOff, MessageSquare, Users, AlertCircle, Bot, User } from 'lucide-react';
+import { Phone, PhoneOff, Loader, Wifi, WifiOff, MessageSquare, Users, AlertCircle, Radio, User } from 'lucide-react';
 import './TeamsPanel.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -183,7 +183,7 @@ function TeamsPanel() {
                             value={meetingUrl}
                             onChange={(e) => setMeetingUrl(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && joinMeeting()}
-                            disabled={isJoining || !isConnected}
+                            disabled={isJoining}
                         />
                         <button
                             className="join-btn"
@@ -250,7 +250,7 @@ function TeamsPanel() {
                 <div className="transcript-feed" ref={transcriptRef}>
                     {transcript.length === 0 ? (
                         <div className="transcript-empty">
-                            <Bot size={32} className="empty-icon" />
+                            <Radio size={32} className="empty-icon" />
                             <p>{activeCallId
                                 ? 'Waiting for speech...'
                                 : 'Ask a question to simulate Teams voice Q&A'
@@ -260,7 +260,7 @@ function TeamsPanel() {
                         transcript.map((entry, idx) => (
                             <div key={idx} className={`transcript-entry ${entry.is_bot ? 'bot' : 'user'}`}>
                                 <div className="transcript-avatar">
-                                    {entry.is_bot ? <Bot size={16} /> : <User size={16} />}
+                                    {entry.is_bot ? <Radio size={16} /> : <User size={16} />}
                                 </div>
                                 <div className="transcript-bubble">
                                     <span className="transcript-speaker">{entry.speaker}</span>
@@ -276,7 +276,7 @@ function TeamsPanel() {
                     )}
                     {demoLoading && (
                         <div className="transcript-entry bot">
-                            <div className="transcript-avatar"><Bot size={16} /></div>
+                            <div className="transcript-avatar"><Radio size={16} /></div>
                             <div className="transcript-bubble loading">
                                 <Loader size={14} className="spinner" /> Thinking...
                             </div>

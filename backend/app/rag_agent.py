@@ -20,7 +20,7 @@ class RAGAgent:
         """Initialize the RAG agent."""
         # --- Gemini API (active) ---
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash-lite",
+            model="gemini-2.5-flash",
             google_api_key=settings.google_api_key,
             temperature=0.7
         )
@@ -60,7 +60,50 @@ class RAGAgent:
     ) -> Dict[str, any]:
         """Ask a question with optional per-conversation source filtering."""
         try:
-            # Retrieve documents with filters
+            # ── Greeting / Identity detection (BEFORE vector search) ──
+            import re
+            cleaned = re.sub(r'[^\w\s]', '', question.lower()).strip()
+            greetings = {"hi", "hello", "hey", "good morning", "good afternoon",
+                        "good evening", "sup", "howdy", "what's up", "whats up",
+                        "who are you", "what are you", "what can you do", "help",
+                        "how are you", "hows it going", "how's it going",
+                        "hows work", "how was your day", "hi there", "hello there",
+                        "greet", "morning", "evening", "who is this", "what is red ai"}
+            
+            # Bulletproof check for identity or simple greeting
+            words = cleaned.split()
+            is_identity_request = "who are you" in cleaned or "what are you" in cleaned or "who is this" in cleaned or "who is red ai" in cleaned
+            is_greeting = (
+                cleaned in greetings 
+                or (words and words[0] in greetings)
+                or is_identity_request
+            )
+
+            if is_greeting:
+                system_msg = """You are Red AI, a friendly onboarding assistant for new company employees.
+Your job is to help employees understand company policies, benefits, and procedures.
+When someone greets you, respond warmly and briefly (1-2 sentences max).
+For 'who are you' or similar, explain you are Red AI: an agent who can help you understand company policies while you onboard.
+Keep responses short, warm, and professional."""
+                prompt = ChatPromptTemplate.from_messages([
+                    ("system", system_msg),
+                    ("human", "{question}")
+                ])
+                chain = prompt | self.llm | StrOutputParser()
+                answer = self._invoke_with_retry(chain, {"question": question})
+                
+                # Fallback to prevent "I don't have information" for greetings
+                if not answer or not answer.strip() or "information about" in answer.lower():
+                    if is_identity_request:
+                        answer = "I'm Red AI, your onboarding assistant. I can help you understand company policies while you onboard."
+                    else:
+                        answer = "Hi! I'm Red AI, your onboarding companion. How can I help you today?"
+                
+                self.chat_history.append(HumanMessage(content=question))
+                self.chat_history.append(AIMessage(content=answer))
+                return {"answer": answer, "sources": [], "mode": "general"}
+
+            # ── RAG: Retrieve documents ──
             docs = self.vector_store_manager.similarity_search(
                 question,
                 conversation_id=conversation_id,
@@ -69,9 +112,9 @@ class RAGAgent:
             
             context = "\n\n".join(doc.page_content for doc in docs) if docs else ""
             
-            # Prompt with few-shot examples to help smaller models
             if context:
-                system_msg = f"""You are a company assistant. Answer questions using ONLY the context provided.
+                system_msg = f"""You are Red AI, a company onboarding assistant. Answer questions using ONLY the context provided below.
+For questions that are clearly unrelated to company policies or work (e.g. geography, cooking, sports), say "I don't have information about that."
 
 CONTEXT:
 {context}
@@ -84,11 +127,16 @@ Q: How many sick leaves do I get?
 A: You get 12 sick leaves per year.
 
 Q: What is the capital of France?
-A: I don't have information about that in the company documents.
+A: I don't have information about that.
 
-NOW ANSWER THE QUESTION BELOW. If the answer is not in the context, say "I don't have information about that in the company documents.\""""
+ANSWER THE QUESTION BELOW. If the answer is not in the context, say "I don't have information about that.\""""
             else:
-                system_msg = "You are a helpful assistant. Give short, direct answers."
+                # No documents found — refuse politely
+                return {
+                    "answer": "I don't have information about that in the company documents.",
+                    "sources": [],
+                    "mode": "rag"
+                }
             
             prompt = ChatPromptTemplate.from_messages([
                 ("system", system_msg),
@@ -98,13 +146,8 @@ NOW ANSWER THE QUESTION BELOW. If the answer is not in the context, say "I don't
             chain = prompt | self.llm | StrOutputParser()
             answer = self._invoke_with_retry(chain, {"question": question})
             
-            if not answer:
-                # All retries returned empty — try direct LLM call
-                response = self.llm.invoke(question)
-                answer = response.content if hasattr(response, 'content') else str(response)
-            
             if not answer or not answer.strip():
-                answer = "I'm having trouble generating a response right now. Please try again."
+                answer = "I don't have information about that."
             
             self.chat_history.append(HumanMessage(content=question))
             self.chat_history.append(AIMessage(content=answer))
@@ -124,26 +167,11 @@ NOW ANSWER THE QUESTION BELOW. If the answer is not in the context, say "I don't
                 "mode": "rag" if docs else "general"
             }
         except Exception as e:
-            # Fallback: direct LLM call with retries
-            for attempt in range(MAX_RETRIES):
-                try:
-                    response = self.llm.invoke(question)
-                    answer = response.content if hasattr(response, 'content') else str(response)
-                    if answer and answer.strip():
-                        return {
-                            "answer": answer,
-                            "sources": [],
-                            "mode": "general"
-                        }
-                    time.sleep(1)
-                except Exception:
-                    if attempt < MAX_RETRIES - 1:
-                        time.sleep(2 ** attempt)
-            
+            # If the API fails (like 429 Rate Limit) or network disconnects
             return {
                 "answer": "I'm having trouble connecting to the AI service. Please try again in a moment.",
                 "sources": [],
-                "mode": "general"
+                "mode": "rag"
             }
     
     def add_documents(self, file_path: str, conversation_id: str = None) -> Dict[str, any]:

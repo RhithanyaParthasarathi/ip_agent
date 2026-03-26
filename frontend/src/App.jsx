@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Header from './components/Header';
+import { MessageSquare, Phone, Layout, Search, Settings } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
 import TeamsPanel from './components/TeamsPanel';
@@ -11,6 +11,8 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [collectionInfo, setCollectionInfo] = useState(null);
   const [activeTab, setActiveTab] = useState('chat');
+  
+  // ... rest of state stays same ...
 
   // Multi-conversation state
   const [conversations, setConversations] = useState([
@@ -89,6 +91,7 @@ function App() {
     };
     setConversations(prev => [newConv, ...prev]);
     setActiveConversationId(newConv.id);
+    setActiveTab('chat');
     try {
       await fetch(`${API_URL}/clear-memory`, { method: 'POST' });
     } catch (e) { }
@@ -111,6 +114,7 @@ function App() {
 
   const switchConversation = async (id) => {
     setActiveConversationId(id);
+    setActiveTab('chat');
     try {
       await fetch(`${API_URL}/clear-memory`, { method: 'POST' });
     } catch (e) { }
@@ -164,40 +168,28 @@ function App() {
 
   return (
     <div className="app">
-      <Header />
-      <div className="tab-nav">
-        <button
-          className={`tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
-          onClick={() => setActiveTab('chat')}
-        >
-          💬 Chat
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'teams' ? 'active' : ''}`}
-          onClick={() => setActiveTab('teams')}
-        >
-          📞 Teams Meeting
-        </button>
-      </div>
       <div className="main-content">
-        {activeTab === 'chat' ? (
-          <>
-            <Sidebar
-              isOpen={sidebarOpen}
-              onToggle={() => setSidebarOpen(!sidebarOpen)}
-              collectionInfo={collectionInfo}
-              onUploadSuccess={handleUploadSuccess}
-              conversations={sortedConversations}
-              activeConversationId={activeConversationId}
-              onNewChat={createNewConversation}
-              onSelectConversation={switchConversation}
-              onDeleteConversation={deleteConversation}
-              onRenameConversation={renameConversation}
-              onTogglePinConversation={togglePinConversation}
-              sources={activeConversation?.sources || []}
-              onToggleSource={toggleSourceActive}
-              onDeleteSource={deleteSource}
-            />
+        <Sidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          collectionInfo={collectionInfo}
+          onUploadSuccess={handleUploadSuccess}
+          conversations={sortedConversations}
+          activeConversationId={activeConversationId}
+          onNewChat={createNewConversation}
+          onSelectConversation={switchConversation}
+          onDeleteConversation={deleteConversation}
+          onRenameConversation={renameConversation}
+          onTogglePinConversation={togglePinConversation}
+          sources={activeConversation?.sources || []}
+          onToggleSource={toggleSourceActive}
+          onDeleteSource={deleteSource}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+        
+        <div className="content-area">
+          {activeTab === 'chat' ? (
             <ChatInterface
               sidebarOpen={sidebarOpen}
               messages={activeConversation?.messages || []}
@@ -207,10 +199,10 @@ function App() {
               conversationId={activeConversationId}
               activeSources={(activeConversation?.sources || []).filter(s => s.active).map(s => s.name)}
             />
-          </>
-        ) : (
-          <TeamsPanel />
-        )}
+          ) : (
+            <TeamsPanel />
+          )}
+        </div>
       </div>
     </div>
   );

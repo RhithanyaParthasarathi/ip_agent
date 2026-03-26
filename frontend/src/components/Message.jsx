@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bot, User, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Radio, User, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import './Message.css';
 
@@ -10,9 +10,9 @@ function Message({ message }) {
     <div className={`message ${message.type} ${message.error ? 'error' : ''}`}>
       <div className="message-avatar">
         {message.type === 'user' ? (
-          <User size={20} />
+          <User size={18} />
         ) : (
-          <Bot size={20} />
+          <Radio size={18} />
         )}
       </div>
       

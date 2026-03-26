@@ -1,9 +1,8 @@
 """
-Speech Service module - STT (Vosk) and TTS (gTTS).
+Speech Service module - STT using Whisper, TTS using Edge TTS (Microsoft Neural Voices).
 
-Uses:
-  - Vosk: Free, offline speech-to-text (downloads a ~50MB model on first use)
-  - gTTS: Free Google Translate TTS (no API key needed, needs internet)
+STT: openai/whisper-base.en (local GPU inference)
+TTS: edge-tts with en-IN-NeerjaNeural (cloud neural voice, free)
 """
 import os
 import io
@@ -11,148 +10,100 @@ import json
 import wave
 import logging
 import tempfile
+import numpy as np
 from pathlib import Path
 from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-# Vosk model directory
-VOSK_MODEL_DIR = Path(__file__).parent.parent / "data" / "vosk-model"
-VOSK_MODEL_URL = "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
-
-
 class SpeechService:
     """
-    Speech-to-Text (Vosk) and Text-to-Speech (gTTS) service.
-    
-    - STT: Vosk runs fully offline after model download (~50MB)
-    - TTS: gTTS uses free Google Translate endpoint (no API key)
+    Speech-to-Text (Whisper) and Text-to-Speech (Edge TTS neural voice) service.
     """
     
     def __init__(self):
         """Initialize speech service."""
         self._stt_ready = False
-        self._tts_ready = False
-        self._vosk_model = None
+        self._tts_ready = False   # Edge-TTS doesn't need local init
         self._init_error: Optional[str] = None
+        self.device = "cuda"
         self._try_initialize()
     
     def _try_initialize(self):
-        """Initialize Vosk and gTTS."""
+        """Initialize STT model only. TTS uses edge-tts (no local model needed)."""
+        import torch
         
-        # ── Initialize TTS (gTTS) ──
+        if not torch.cuda.is_available():
+            self.device = "cpu"
+            logger.warning("CUDA not available, running on CPU. STT will be slow.")
+        else:
+            logger.info(f"Using GPU: {torch.cuda.get_device_name(0)}")
+
+        # ── Initialize STT (Whisper Base) ──
         try:
-            from gtts import gTTS
-            # Quick validation that gTTS is importable
-            self._tts_ready = True
-            logger.info("SpeechService: gTTS ready")
-        except ImportError:
-            logger.warning("SpeechService: gTTS not installed. Run: pip install gTTS")
-        
-        # ── Initialize STT (Vosk) ──
-        try:
-            from vosk import Model, SetLogLevel
-            SetLogLevel(-1)  # Suppress Vosk debug logs
+            from transformers import pipeline
             
-            model_path = str(VOSK_MODEL_DIR)
-            
-            if VOSK_MODEL_DIR.exists():
-                self._vosk_model = Model(model_path)
-                self._stt_ready = True
-                logger.info("SpeechService: Vosk model loaded from %s", model_path)
-            else:
-                self._init_error = (
-                    f"Vosk model not found at {model_path}. "
-                    f"Download it with: python -c \"from app.speech_service import SpeechService; SpeechService.download_model()\""
-                )
-                logger.warning("SpeechService: %s", self._init_error)
-                
-        except ImportError:
-            err = "Vosk not installed. Run: pip install vosk"
-            logger.warning("SpeechService: %s", err)
-            if not self._init_error:
-                self._init_error = err
+            stt_model_name = "openai/whisper-base.en"
+            logger.info(f"Loading STT model: {stt_model_name}...")
+            self.stt_pipeline = pipeline(
+                "automatic-speech-recognition",
+                model=stt_model_name,
+                device=self.device
+            )
+            self._stt_ready = True
+            logger.info("SpeechService: STT (Whisper Base) ready")
         except Exception as e:
-            err = f"Vosk init error: {str(e)}"
+            err = f"STT init error: {str(e)}"
             logger.error("SpeechService: %s", err)
-            if not self._init_error:
-                self._init_error = err
-        
-        if self._stt_ready and self._tts_ready:
-            self._init_error = None
-    
-    @staticmethod
-    def download_model():
-        """Download the Vosk English model (~50MB)."""
-        import urllib.request
-        import zipfile
-        
-        VOSK_MODEL_DIR.parent.mkdir(parents=True, exist_ok=True)
-        
-        zip_path = VOSK_MODEL_DIR.parent / "vosk-model.zip"
-        
-        print(f"Downloading Vosk model from {VOSK_MODEL_URL}...")
-        print("This is a one-time download (~50MB)...")
-        urllib.request.urlretrieve(VOSK_MODEL_URL, str(zip_path))
-        
-        print("Extracting model...")
-        with zipfile.ZipFile(str(zip_path), 'r') as zf:
-            zf.extractall(str(VOSK_MODEL_DIR.parent))
-        
-        # The zip extracts to a folder like "vosk-model-small-en-us-0.15"
-        # Rename it to our expected path
-        extracted_dirs = [
-            d for d in VOSK_MODEL_DIR.parent.iterdir()
-            if d.is_dir() and d.name.startswith("vosk-model") and d != VOSK_MODEL_DIR
-        ]
-        if extracted_dirs:
-            extracted_dirs[0].rename(VOSK_MODEL_DIR)
-        
-        # Clean up zip
-        zip_path.unlink()
-        print(f"Vosk model ready at: {VOSK_MODEL_DIR}")
+            self._init_error = err
+
+        # ── TTS: edge-tts (no local model needed) ──
+        try:
+            import edge_tts  # noqa: just verify it's installed
+            self._tts_ready = True
+            logger.info("SpeechService: TTS (Edge TTS - NeerjaNeural) ready")
+        except ImportError:
+            logger.warning("edge-tts not installed. TTS will be disabled. Run: pip install edge-tts")
+            self._tts_ready = False
     
     def get_status(self) -> Dict[str, Any]:
         """Get the speech service status."""
         return {
             "stt_ready": self._stt_ready,
             "tts_ready": self._tts_ready,
-            "stt_engine": "vosk" if self._stt_ready else "not loaded",
-            "tts_engine": "gTTS" if self._tts_ready else "not loaded",
+            "stt_engine": "whisper-base" if self._stt_ready else "not loaded",
+            "tts_engine": "edge-tts (NeerjaNeural)" if self._tts_ready else "not loaded",
             "mode": "active" if (self._stt_ready and self._tts_ready) else "partial",
             "error": self._init_error,
         }
     
     def transcribe_audio(self, audio_bytes: bytes, sample_rate: int = 16000) -> Optional[str]:
         """
-        Convert audio bytes to text using Vosk.
-        
-        Args:
-            audio_bytes: Raw audio data (PCM 16-bit, mono)
-            sample_rate: Audio sample rate in Hz
-            
-        Returns:
-            Transcribed text, or None if transcription fails
+        Convert audio bytes to text using Whisper.
         """
-        if not self._stt_ready or not self._vosk_model:
-            logger.warning("SpeechService: Vosk not ready")
+        if not self._stt_ready or not hasattr(self, 'stt_pipeline'):
+            logger.warning("SpeechService: STT not ready")
             return None
-        
+            
         try:
-            from vosk import KaldiRecognizer
+            import soundfile as sf
+            import io
+            import traceback
             
-            recognizer = KaldiRecognizer(self._vosk_model, sample_rate)
-            recognizer.SetWords(True)
-            
-            # Feed audio in chunks
-            chunk_size = 4000
-            for i in range(0, len(audio_bytes), chunk_size):
-                chunk = audio_bytes[i:i + chunk_size]
-                recognizer.AcceptWaveform(chunk)
-            
-            # Get final result
-            result = json.loads(recognizer.FinalResult())
-            text = result.get("text", "").strip()
+            # Read raw bytes into numpy array
+            with io.BytesIO(audio_bytes) as audio_file:
+                # We need to read this as a WAV, assuming it's valid PCM
+                audio_array, sr = sf.read(audio_file)
+                
+            # If stereo, convert to mono
+            if len(audio_array.shape) > 1:
+                audio_array = audio_array.mean(axis=1)
+                
+            # Run Whisper Inference
+            # Whisper pipeline automatically handles resampling!
+            logger.info("SpeechService: Running Whisper STT inference...")
+            result = self.stt_pipeline({"sampling_rate": sr, "raw": audio_array})
+            text = result["text"].strip()
             
             if text:
                 logger.info("SpeechService: Transcribed: %s", text[:80])
@@ -162,94 +113,83 @@ class SpeechService:
                 return None
                 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             logger.error("SpeechService: STT error: %s", str(e))
             return None
-    
+            
     def transcribe_wav_file(self, wav_path: str) -> Optional[str]:
-        """
-        Transcribe a WAV file using Vosk.
-        
-        Args:
-            wav_path: Path to WAV file (must be 16-bit mono PCM)
-            
-        Returns:
-            Transcribed text, or None
-        """
-        if not self._stt_ready or not self._vosk_model:
-            logger.warning("SpeechService: Vosk not ready")
-            return None
-        
+        """Transcribe a WAV file directly."""
         try:
-            wf = wave.open(wav_path, "rb")
-            if wf.getnchannels() != 1 or wf.getsampwidth() != 2:
-                logger.error("SpeechService: WAV must be mono 16-bit PCM")
-                return None
-            
-            sample_rate = wf.getframerate()
-            audio_bytes = wf.readframes(wf.getnframes())
-            wf.close()
-            
-            return self.transcribe_audio(audio_bytes, sample_rate)
-            
+            with open(wav_path, "rb") as f:
+                return self.transcribe_audio(f.read())
         except Exception as e:
             logger.error("SpeechService: WAV transcription error: %s", str(e))
             return None
-    
+            
     def synthesize_speech(
-        self, 
-        text: str, 
+        self,
+        text: str,
         lang: str = "en",
         slow: bool = False,
     ) -> Optional[bytes]:
         """
-        Convert text to speech audio using gTTS.
-        
-        Args:
-            text: Text to synthesize
-            lang: Language code (default: "en")
-            slow: Whether to speak slowly
-            
-        Returns:
-            Audio bytes (MP3 format), or None if synthesis fails
+        Convert text to speech using Microsoft Edge TTS neural voices.
+        Uses en-IN-NeerjaNeural for natural Indian-English female voice.
         """
         if not self._tts_ready:
-            logger.warning("SpeechService: gTTS not ready")
+            logger.warning("SpeechService: TTS not ready")
             return None
-        
+
         try:
-            from gtts import gTTS
-            
-            tts = gTTS(text=text, lang=lang, slow=slow)
-            
-            # Write to an in-memory buffer
-            audio_buffer = io.BytesIO()
-            tts.write_to_fp(audio_buffer)
-            audio_buffer.seek(0)
-            audio_bytes = audio_buffer.read()
-            
-            logger.info("SpeechService: Synthesized %d bytes of audio for: %s", 
-                        len(audio_bytes), text[:50])
+            import asyncio
+            import edge_tts
+
+            # en-IN-NeerjaNeural: natural Indian English female voice
+            # Alternatives: en-US-AriaNeural, en-GB-SoniaNeural, en-IN-PrabhatNeural (male)
+            VOICE = "en-IN-NeerjaNeural"
+
+            async def _synthesize() -> bytes:
+                communicate = edge_tts.Communicate(text, VOICE)
+                audio_chunks = []
+                async for chunk in communicate.stream():
+                    if chunk["type"] == "audio":
+                        audio_chunks.append(chunk["data"])
+                return b"".join(audio_chunks)
+
+            # Run the async coroutine safely
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # We're inside FastAPI's event loop — use a thread pool
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as pool:
+                        future = pool.submit(asyncio.run, _synthesize())
+                        audio_bytes = future.result(timeout=15)
+                else:
+                    audio_bytes = loop.run_until_complete(_synthesize())
+            except RuntimeError:
+                audio_bytes = asyncio.run(_synthesize())
+
+            logger.info("SpeechService: Edge TTS synthesized %d bytes", len(audio_bytes))
             return audio_bytes
-            
+
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             logger.error("SpeechService: TTS error: %s", str(e))
             return None
-    
+
     def synthesize_to_file(self, text: str, output_path: str, lang: str = "en") -> bool:
-        """
-        Convert text to speech and save as MP3 file.
-        
-        Args:
-            text: Text to synthesize
-            output_path: Path to save the MP3 file
-            lang: Language code
-            
-        Returns:
-            True if successful
-        """
+        """Convert text to speech and save as file."""
         audio = self.synthesize_speech(text, lang=lang)
         if audio:
-            with open(output_path, "wb") as f:
-                f.write(audio)
-            return True
+            try:
+                with open(output_path, "wb") as f:
+                    f.write(audio)
+                return True
+            except Exception as e:
+                logger.error("SpeechService: TTS file error: %s", str(e))
         return False
+
+

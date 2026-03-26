@@ -156,11 +156,63 @@ async def upload_text(request: TextUploadRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/ask-voice")
+async def ask_voice(file: UploadFile = File(...), conversation_id: str = Form(None)):
+    """
+    Test endpoint for voice models. Takes audio, transcribes it, 
+    asks the RAG agent, and synthesizes the answer back to audio.
+    """
+    import base64
+    try:
+        # 1. Read Audio
+        audio_bytes = await file.read()
+        
+        # 2. Transcribe (STT)
+        transcription = speech_service.transcribe_audio(audio_bytes)
+        if not transcription:
+            raise HTTPException(status_code=400, detail="Could not transcribe audio. Speak clearer or check mic format.")
+            
+        # 3. Ask RAG Agent
+        result = agent.ask(transcription, conversation_id=conversation_id)
+        answer = result.get("answer", "I could not find an answer.")
+        
+        # 4. Synthesize Speech (TTS)
+        tts_audio_bytes = speech_service.synthesize_speech(answer)
+        if not tts_audio_bytes:
+            raise HTTPException(status_code=500, detail="Failed to synthesize speech audio.")
+            
+        # Encode as base64 so frontend can play it easily in JSON
+        audio_b64 = base64.b64encode(tts_audio_bytes).decode("utf-8")
+        
+        return {
+            "transcription": transcription,
+            "answer": answer,
+            "audio_base64": audio_b64,
+            "sources": result.get("sources", []),
+            "mode": result.get("mode", "general")
+        }
+        
+    except Exception as e:
+        logger.error(f"Voice ask error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/clear-memory")
 async def clear_memory():
     """Clear the conversation memory."""
     agent.clear_memory()
     return {"message": "Conversation memory cleared"}
+
+
+@app.post("/collection/clear")
+async def clear_collection():
+    """Clear all documents from the vector store."""
+    try:
+        agent.vector_store_manager.delete_collection()
+        agent.vector_store_manager._ensure_collection_exists()
+        return {"message": "Vector store collection cleared and reset"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/collection/info")
