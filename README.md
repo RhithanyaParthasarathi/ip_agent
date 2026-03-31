@@ -77,7 +77,7 @@ docker run -p 6333:6333 qdrant/qdrant
 **Terminal 2 - Backend:**
 
 ```powershell
-python main.py
+uvicorn app.main:app --reload
 ```
 
 **Terminal 3 - Frontend:**

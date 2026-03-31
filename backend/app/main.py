@@ -11,6 +11,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from .rag_agent import RAGAgent
 from .teams_bot import TeamsBot
+from .teams_selenium import teams_selenium_bot
 from .speech_service import SpeechService
 from .call_manager import CallManager
 from .config import settings
@@ -288,6 +289,54 @@ async def leave_meeting(call_connection_id: str):
         raise HTTPException(status_code=400, detail=result.get("error", "Failed to leave meeting"))
 
 
+# ─── Teams Selenium Integration Routes ───
+
+@app.post("/teams/selenium/join")
+async def join_meeting_selenium(request: JoinMeetingRequest, headless: bool = False):
+    """Join a Teams meeting using Selenium browser automation."""
+    try:
+        result = teams_selenium_bot.join_meeting(
+            request.meeting_url, 
+            headless=headless
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/teams/selenium/leave/{session_id}")
+async def leave_meeting_selenium(session_id: str):
+    """Close a specific Selenium Teams session."""
+    teams_selenium_bot.stop_meeting(session_id)
+    return {"status": "success", "session_id": session_id}
+
+
+@app.post("/teams/selenium/action/{session_id}/{action}")
+async def teams_selenium_action(session_id: str, action: str):
+    """Trigger a manual UI action (chat, more, captions) for a Selenium session."""
+    try:
+        teams_selenium_bot.trigger_action(session_id, action)
+        return {"status": "success", "session_id": session_id, "action": action}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/teams/selenium/chat/{session_id}")
+async def teams_selenium_manual_chat(session_id: str, request: QuestionRequest):
+    """Send a manual text message into the Teams meeting chat via Selenium."""
+    try:
+        teams_selenium_bot.send_manual_chat(session_id, request.question)
+        return {"status": "success", "session_id": session_id, "message": request.question}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/teams/selenium/status")
+async def get_selenium_status():
+    """Get all active Selenium meeting sessions."""
+    return teams_selenium_bot.get_status()
+
+
 @app.post("/teams/callback")
 async def teams_callback(request: Request):
     """
@@ -318,6 +367,12 @@ async def teams_callback(request: Request):
 @app.get("/teams/call/{call_connection_id}")
 async def get_call_info(call_connection_id: str):
     """Get info about a specific active call."""
+    if call_connection_id.startswith("sel_"):
+        session_id = call_connection_id.replace("sel_", "")
+        info = teams_selenium_bot.get_session_info(session_id)
+        if info: return info
+        raise HTTPException(status_code=404, detail="Selenium session not found")
+        
     info = call_manager.get_call_info(call_connection_id)
     if info:
         return info
@@ -327,6 +382,9 @@ async def get_call_info(call_connection_id: str):
 @app.get("/teams/events/{call_connection_id}")
 async def get_call_events(call_connection_id: str, since: int = 0):
     """Get events for a call, optionally since a given event index."""
+    if call_connection_id.startswith("sel_"):
+        return {"events": [], "count": 0} # No events for Selenium yet
+        
     events = call_manager.get_call_events(call_connection_id, since)
     return {"events": events, "count": len(events)}
 
